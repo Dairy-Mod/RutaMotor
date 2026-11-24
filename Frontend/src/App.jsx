@@ -26,6 +26,8 @@ export default function App() {
     [],
   );
   const reload = useCallback(async () => {
+    // El mapa consulta sus ubicaciones aunque falle uno de los catálogos.
+    setVersion((v) => v + 1);
     try {
       const keys = Object.keys(empty);
       const responses = await Promise.all(keys.map((k) => api("/" + k)));
@@ -33,12 +35,19 @@ export default function App() {
         Object.fromEntries(keys.map((k, i) => [k, responses[i].data])),
       );
       setCatalogError("");
-      setVersion((v) => v + 1);
     } catch (e) {
       setCatalogError(e.message);
       throw e;
     }
   }, []);
+  const afterMutation = useCallback(
+    (message) => {
+      notify(message);
+      // La operación ya se guardó. El banner permite reintentar solo la lectura.
+      void reload().catch(() => {});
+    },
+    [notify, reload],
+  );
   useEffect(() => {
     api("/auth/me")
       .then(({ data }) => setUser(data))
@@ -174,7 +183,7 @@ export default function App() {
         </header>
         {catalogError && (
           <div className="catalog-error" role="alert">
-            No se pudo cargar el directorio: {catalogError}
+            No se pudo actualizar el directorio: {catalogError}
             <button
               className="text-button"
               onClick={() => reload().catch(() => {})}
@@ -196,13 +205,14 @@ export default function App() {
               catalogs={catalogs}
               version={version}
               reload={reload}
+              afterMutation={afterMutation}
               notify={notify}
               onAdmin={() => navigate("admin")}
               initialSpecialty={serviceSearch}
             />
           )}
           {view === "admin" && (
-            <Admin catalogs={catalogs} reload={reload} notify={notify} />
+            <Admin catalogs={catalogs} afterMutation={afterMutation} />
           )}
           {view === "guide" && (
             <Guide

@@ -24,6 +24,7 @@ export default function Explorer({
   catalogs,
   version,
   reload,
+  afterMutation,
   notify,
   onAdmin,
   initialSpecialty,
@@ -45,6 +46,13 @@ export default function Explorer({
     [radius, setRadius] = useState("5"),
     [locating, setLocating] = useState(false);
   const mapRef = useRef();
+  const geolocationRequest = useRef(0);
+  useEffect(() => {
+    return () => {
+      // Invalida tanto el resultado como el error de una solicitud pendiente.
+      geolocationRequest.current += 1;
+    };
+  }, []);
   const { categories, businesses, zones } = catalogs;
   const params = new URLSearchParams(
     Object.entries(filters).filter(([, v]) => v),
@@ -93,9 +101,8 @@ export default function Explorer({
       body,
       id ? "PATCH" : "POST",
     );
-    await reload();
-    notify(id ? "Ubicación actualizada." : "Ubicación registrada.");
     setModal(null);
+    afterMutation(id ? "Ubicación actualizada." : "Ubicación registrada.");
   }
   function askDelete(type, item) {
     setModalError("");
@@ -108,9 +115,8 @@ export default function Explorer({
       await remove("/" + modal.entity + "/" + modal.item.id);
       if (modal.entity === "zones" && filters.zone === modal.item.id)
         filter("zone", "");
-      await reload();
       setModal(null);
-      notify("Registro eliminado.");
+      afterMutation("Registro eliminado.");
     } catch (e) {
       setModalError(e.message);
     } finally {
@@ -122,9 +128,11 @@ export default function Explorer({
       notify("Tu navegador no permite obtener la ubicación.", "error");
       return;
     }
+    const request = ++geolocationRequest.current;
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        if (request !== geolocationRequest.current || !mapRef.current) return;
         setCoords(position.coords);
         mapRef.current.locate(position.coords);
         setNear(true);
@@ -134,6 +142,7 @@ export default function Explorer({
         );
       },
       () => {
+        if (request !== geolocationRequest.current) return;
         setLocating(false);
         notify(
           "No fue posible obtener tu ubicación. Revisa el permiso del navegador.",
@@ -159,9 +168,8 @@ export default function Explorer({
         body,
         modal.item ? "PATCH" : "POST",
       );
-      await reload();
       setModal(null);
-      notify("Zona guardada.");
+      afterMutation("Zona guardada.");
     } catch (e) {
       setModalError(e.message);
     } finally {
@@ -175,8 +183,7 @@ export default function Explorer({
     if (!geometry) return;
     try {
       await write("/zones/" + id, { geometry }, "PATCH");
-      await reload();
-      notify("Geometría de zona actualizada.");
+      afterMutation("Geometría de zona actualizada.");
     } catch (e) {
       notify(e.message, "error");
       await reload();

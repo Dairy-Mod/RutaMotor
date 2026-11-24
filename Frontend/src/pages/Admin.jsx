@@ -157,7 +157,7 @@ function EntityForm({ entity, item, specialties, onSave, onCancel }) {
     </form>
   );
 }
-export default function Admin({ catalogs, reload, notify }) {
+export default function Admin({ catalogs, afterMutation }) {
   const [tab, setTab] = useState("businesses"),
     [modal, setModal] = useState(null),
     [busy, setBusy] = useState(false),
@@ -173,18 +173,16 @@ export default function Admin({ catalogs, reload, notify }) {
       body,
       modal.item ? "PATCH" : "POST",
     );
-    await reload();
-    notify("Cambios guardados.");
     setModal(null);
+    afterMutation("Cambios guardados.");
   }
   async function confirmDelete() {
     setBusy(true);
     setError("");
     try {
       await remove("/" + tab + "/" + modal.item.id);
-      await reload();
       setModal(null);
-      notify("Registro eliminado.");
+      afterMutation("Registro eliminado.");
     } catch (e) {
       setError(e.message);
     } finally {
