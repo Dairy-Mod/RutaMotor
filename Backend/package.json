@@ -1,0 +1,32 @@
+{
+  "name": "@rutamotor/backend",
+  "version": "1.0.0",
+  "description": "API REST local de RutaMotor: directorio automotriz y zonas de servicio",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "seed": "node src/data/seed.js",
+    "test": "node --test --test-concurrency=1 test/*.test.js"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "leaflet",
+    "geojson",
+    "georreferenciacion"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^18.0.7",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "mongoose": "^9.0.0"
+  }
+}

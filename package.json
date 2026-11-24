@@ -1,0 +1,23 @@
+{
+  "name": "rutamotor",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "Backend",
+    "Frontend"
+  ],
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "node scripts/dev.mjs",
+    "seed": "npm run seed -w @rutamotor/backend",
+    "build": "npm run build -w @rutamotor/frontend",
+    "test": "npm test -w @rutamotor/backend",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

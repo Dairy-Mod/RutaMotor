@@ -1,0 +1,66 @@
+@baseUrl = http://127.0.0.1:3001/api
+@categoryId = REEMPLAZAR_CON_ID
+@businessId = REEMPLAZAR_CON_ID
+@locationId = REEMPLAZAR_CON_ID
+
+### Salud
+GET {{baseUrl}}/health
+
+### Iniciar sesión (REST Client conserva la cookie de respuesta)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "demo@rutamotor.local",
+  "password": "RutaMotor2026!"
+}
+
+### Sesión actual
+GET {{baseUrl}}/auth/me
+
+### Catálogos y IDs para los siguientes ejemplos
+GET {{baseUrl}}/categories
+
+###
+GET {{baseUrl}}/businesses
+
+### Filtros combinables
+GET {{baseUrl}}/locations?search=taller&status=disponible
+
+### Cercanía
+GET {{baseUrl}}/locations?longitude=-101.68&latitude=21.12&radius=5
+
+### GeoJSON
+GET {{baseUrl}}/locations/geojson
+
+### Crear ubicación
+POST {{baseUrl}}/locations
+Content-Type: application/json
+
+{
+  "name": "Mi taller de prueba",
+  "description": "Registro manual de prueba.",
+  "address": "León, Guanajuato",
+  "category": "{{categoryId}}",
+  "business": "{{businessId}}",
+  "status": "por_confirmar",
+  "location": { "type": "Point", "coordinates": [-101.68, 21.12] }
+}
+
+### Edición parcial
+PATCH {{baseUrl}}/locations/{{locationId}}
+Content-Type: application/json
+
+{ "status": "disponible" }
+
+### Eliminar (usa únicamente el ID de un registro de prueba propio)
+DELETE {{baseUrl}}/locations/{{locationId}}
+
+### Zonas guardadas
+GET {{baseUrl}}/zones/geojson
+
+### Cierre de sesión
+POST {{baseUrl}}/auth/logout
+Content-Type: application/json
+
+{}
