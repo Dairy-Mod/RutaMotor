@@ -2,13 +2,34 @@
 
 Directorio automotriz georreferenciado para localizar talleres, tiendas de autos, refaccionarias y agencias en León, Guanajuato. Incluye una guía ilustrada de testigos del tablero que permite buscar negocios por la especialidad relacionada.
 
-Aplicación independiente del sistema de incidentes original. El frontend y el backend se ejecutan localmente; los datos de la configuración actual se almacenan en **MongoDB Atlas**. Conserva la organización por capas y usa **React con Vite**, **Leaflet + Geoman**, **Node.js + Express** y **Mongoose**. El despliegue y el reporte de desarrollo permanecen pendientes.
+Aplicación independiente del sistema de incidentes original, desarrollada con **React + Vite**, **Leaflet + Geoman**, **Node.js + Express** y **MongoDB Atlas con Mongoose**. El frontend está publicado en **Netlify** y el backend en **Render**. También se puede ejecutar en un entorno local. El reporte de desarrollo permanece pendiente.
+
+## Enlaces del proyecto
+
+| Recurso | Dirección |
+| --- | --- |
+| Aplicación web | [rutamotor.netlify.app](https://rutamotor.netlify.app) |
+| Salud de la API a través del frontend | [rutamotor.netlify.app/api/health](https://rutamotor.netlify.app/api/health) |
+| Backend | [rutamotor.onrender.com](https://rutamotor.onrender.com) |
+| Salud del backend | [rutamotor.onrender.com/api/health](https://rutamotor.onrender.com/api/health) |
+| Repositorio | [Dairy-Mod/RutaMotor](https://github.com/Dairy-Mod/RutaMotor) |
+
+La ruta `/api/health` es pública y devuelve `status: "ok"` cuando el backend está conectado a MongoDB. Las rutas de datos requieren iniciar sesión. La raíz del backend no tiene una página de bienvenida; usa `/api/health` para comprobar su estado.
 
 ## Ejecución local
 
 Requisitos: Node.js 22.12 o superior (probado con Node 24), npm, acceso a internet y una conexión válida a MongoDB Atlas. El usuario de base de datos debe tener permisos de lectura y escritura sobre la base elegida, y Atlas debe permitir el acceso desde la IP del equipo.
 
-Desde esta carpeta `PF`, instala las dependencias y prepara los archivos de entorno:
+Para obtener el proyecto desde el repositorio:
+
+```powershell
+git clone https://github.com/Dairy-Mod/RutaMotor.git
+cd RutaMotor
+```
+
+La raíz del repositorio corresponde a la carpeta `PF` dentro del proyecto de incidentes. Si ya tienes esa carpeta, ejecuta los comandos desde `PF`; si clonaste el repositorio, ejecútalos desde `RutaMotor`.
+
+Instala las dependencias y prepara los archivos de entorno:
 
 ```powershell
 npm ci
@@ -24,7 +45,7 @@ npm run seed
 npm run dev
 ```
 
-Abre **http://127.0.0.1:5173**. API: http://127.0.0.1:3001/api/health.
+Abre **http://127.0.0.1:5173**. Salud de la API local: http://127.0.0.1:3001/api/health. Para HTTP local, conserva `COOKIE_SECURE=false` y permite los orígenes locales en `FRONTEND_ORIGINS`, como indica `Backend/.env.example`.
 
 - `setup` copia los ejemplos de entorno únicamente si no existe el archivo `.env`.
 - `seed` agrega una cuenta, 4 categorías, 7 especialidades, 11 negocios, 11 ubicaciones y 1 zona. Se puede repetir: no limpia colecciones, no cambia contraseñas de usuarios existentes ni reemplaza registros.
@@ -32,6 +53,7 @@ Abre **http://127.0.0.1:5173**. API: http://127.0.0.1:3001/api/health.
 - La carga se realiza en la base indicada por la configuración actual. Los datos de una base local no se transfieren automáticamente a Atlas: el seed crea los ejemplos faltantes; no migra los registros que hayas agregado manualmente.
 - Los datos con “Demo” y sus coordenadas son ficticios, no establecimientos verificados. Los teléfonos se dejan vacíos para evitar dirigir llamadas a personas reales.
 - Detén ambos servidores con Ctrl+C.
+- Al iniciar, el backend muestra en consola el host, puerto, base conectada y listado de rutas de autenticación, CRUD y GeoJSON.
 - Si cambias las dependencias del proyecto, usa `npm install` y conserva actualizado `package-lock.json`. Para instalar las versiones registradas utiliza `npm ci`, desde `PF`.
 
 El seed crea la cuenta de demostración con `DEMO_EMAIL` y `DEMO_PASSWORD` de `Backend/.env`. Los valores públicos de ejemplo de `Backend/.env.example` son:
@@ -76,7 +98,7 @@ Esta opción también es la configuración de ejemplo del repositorio y la usada
 
 `Frontend/.env.example` contiene `VITE_API_URL=/api`. El proxy de Vite envía estas peticiones al puerto 3001. Si cambias el puerto del backend, ajusta `API_PROXY_TARGET` al iniciar Vite o el valor por defecto en `Frontend/vite.config.js`.
 
-El frontend y el backend se ejecutan en el equipo. **Con Atlas se necesita internet para consultar y guardar datos**; la aplicación no incluye un modo de datos sin conexión. El mapa base de OpenStreetMap y la fuente tipográfica opcional de Google Fonts también requieren internet. Si falla la fuente se utiliza una del sistema; si falla el mapa base, se muestra un aviso. No se requiere una clave de Mapbox. La geolocalización pide permiso del navegador y funciona en localhost/127.0.0.1.
+En desarrollo local, el frontend y el backend se ejecutan en el equipo. En la versión publicada, se ejecutan en Netlify y Render respectivamente. **Con Atlas se necesita internet para consultar y guardar datos**; la aplicación no incluye un modo de datos sin conexión. El mapa base de OpenStreetMap y la fuente tipográfica opcional de Google Fonts también requieren internet. Si falla la fuente se utiliza una del sistema; si falla el mapa base, se muestra un aviso. No se requiere una clave de Mapbox. La geolocalización pide permiso del navegador y funciona en localhost/127.0.0.1 y en el sitio publicado mediante HTTPS.
 
 ### Comprobar la conexión y los datos
 
@@ -85,6 +107,75 @@ Al ejecutar `npm run dev`, el backend conecta a MongoDB y prepara los índices a
 En Atlas o MongoDB Compass, abre la base configurada y consulta `users`, `categories`, `specialties`, `businesses`, `locations` y `zones`. La colección `sessions` almacena las sesiones de acceso. Para comprobar la persistencia, crea o edita un lugar desde la app y actualiza la vista de documentos de `locations`.
 
 Si aparece `bad auth : authentication failed`, revisa el usuario de base de datos, la contraseña y su codificación en la URI. Si aparece `querySrv ECONNREFUSED`, revisa `MONGODB_DNS_SERVERS`. Confirma también que Atlas permita la IP del equipo.
+
+## Despliegue actual
+
+```text
+Navegador → Netlify: React y archivos estáticos
+                    /api/* → Render: API Express → MongoDB Atlas
+```
+
+El navegador utiliza rutas relativas `/api`. En desarrollo las redirige el proxy de Vite; en producción las redirige `netlify.toml` hacia Render. Esto permite que las solicitudes y la cookie de sesión usen el dominio del frontend desde el navegador.
+
+### Frontend en Netlify
+
+La configuración está en `netlify.toml`, en la raíz del repositorio:
+
+| Opción | Valor |
+| --- | --- |
+| Rama de despliegue | `main` |
+| Directorio base | Raíz del repositorio |
+| Comando de compilación | `npm run build` |
+| Directorio publicado | `Frontend/dist` |
+| Node.js | `24` |
+| `VITE_API_URL` | `/api` |
+
+`NODE_VERSION` y `VITE_API_URL` ya se declaran en `[build.environment]`. La regla `/api/*` apunta a `https://rutamotor.onrender.com/api/:splat` con estado 200 y `force = true`; debe permanecer antes de la regla general que sirve `index.html`. Si cambia el dominio del backend, actualiza esa dirección y vuelve a desplegar el frontend.
+
+El backend se aloja en Render, por lo que este proyecto no requiere Netlify Functions. Las credenciales privadas de MongoDB se configuran en Render. Las variables `VITE_*` forman parte de la configuración pública del frontend.
+
+### Backend en Render
+
+El servicio utiliza la raíz del repositorio, con estos comandos:
+
+| Opción | Valor |
+| --- | --- |
+| Comando de compilación/instalación | `npm ci` |
+| Comando de inicio | `npm run start -w @rutamotor/backend` |
+| Comprobación de salud | `/api/health` |
+
+Configura las variables de entorno en el servicio de Render:
+
+| Variable | Valor o propósito |
+| --- | --- |
+| `NODE_VERSION` | `24` |
+| `HOST` | `0.0.0.0`, para aceptar conexiones del servicio publicado |
+| `MONGODB_URI` | URI privada de Atlas con las credenciales codificadas y la base elegida |
+| `FRONTEND_ORIGINS` | `https://rutamotor.netlify.app`, sin diagonal final |
+| `COOKIE_SECURE` | `true`, para la sesión mediante HTTPS |
+| `SESSION_HOURS` | Opcional; duración de sesión, 12 horas por defecto |
+| `MONGODB_DNS_SERVERS` | Opcional; servidores alternativos si falla la resolución SRV |
+
+El backend utiliza el `PORT` proporcionado por Render. Los `.env` locales no se suben al repositorio ni se copian automáticamente al servicio publicado.
+
+Atlas debe permitir los rangos de IP de salida del servicio de Render. Se consultan en **Connect → Outbound** y se agregan a la **IP Access List** del proyecto de Atlas, conservando la notación CIDR. La IP del equipo local y los rangos de Render se autorizan por separado.
+
+Si vas a trabajar también desde el equipo local, puedes usar esta lista de orígenes:
+
+```dotenv
+FRONTEND_ORIGINS=https://rutamotor.netlify.app,http://127.0.0.1:5173,http://localhost:5173
+```
+
+Después de cambiar variables del servicio, vuelve a desplegarlo. Para aplicar cambios del código, súbelos al repositorio y utiliza **Manual Deploy → Deploy latest commit**, o el despliegue automático si está habilitado.
+
+### Comprobación de la versión publicada
+
+1. Abre el sitio de Netlify desde una ventana de incógnito para comprobar su acceso público. Si Netlify muestra una página de acceso privado, configura la visibilidad del proyecto como pública con **Make public**.
+2. Consulta `/api/health` desde el dominio de Netlify y desde Render; ambas respuestas deben ser JSON con `status: "ok"`.
+3. Inicia sesión o crea una cuenta y verifica que la sesión se conserve al recargar la página.
+4. Crea una ubicación de prueba, edítala desde su popup, comprueba su persistencia y elimina el registro de prueba.
+
+Si `/api/health` responde con HTML en lugar de JSON, revisa la visibilidad de Netlify, las reglas de redirección y que `netlify.toml` esté incluido en el despliegue. Un error 403 de la API puede indicar que `FRONTEND_ORIGINS` no incluye el origen exacto del sitio.
 
 ## Recorrido de uso
 
@@ -103,6 +194,14 @@ Todos los usuarios autenticados participan en el mismo directorio colaborativo y
 
 “Disponible”, “Por confirmar” y “Cerrado” son estados registrados manualmente. La app no deduce horarios de apertura ni certifica disponibilidad.
 
+## Negocios y ubicaciones
+
+Un **negocio** representa al establecimiento o empresa y guarda su nombre, teléfono, horario, sitio web y especialidades. Se administra desde **Administración → Negocios**.
+
+Una **ubicación** es un punto concreto del mapa asociado a un negocio. Guarda nombre del lugar, descripción, dirección, categoría, estado, coordenadas y referencia al usuario creador. Se registra haciendo clic en el mapa y seleccionando un negocio existente.
+
+Un negocio puede tener varias ubicaciones, por ejemplo una sucursal Centro y otra Norte. En el modelo actual, teléfono, horario, sitio web y especialidades pertenecen al negocio y se comparten entre sus ubicaciones. Los ejemplos iniciales utilizan nombres parecidos para ambas entidades porque se cargó una ubicación por negocio.
+
 ## Correspondencia con los requisitos funcionales
 
 | Requisito | Implementación |
@@ -118,12 +217,14 @@ Todos los usuarios autenticados participan en el mismo directorio colaborativo y
 | Interfaz | Acceso/registro, mapa con tabla, administración y guía del tablero; diseño adaptable y mensajes visibles |
 | Backend en capas | config, models, routes, services, middlewares, utils y data |
 | MongoDB Atlas | Conexión configurada y comprobada, datos de demostración cargados e índices 2dsphere verificados |
-| Despliegue | Pendiente; el frontend y el backend se ejecutan localmente |
-| Repositorio público y reporte | Entregables pendientes; el reporte se pospuso por indicación del usuario |
+| Despliegue | Frontend publicado en Netlify, backend en Render y datos en Atlas |
+| Repositorio público | Creado y publicado en GitHub; enlace al inicio de este README |
 
 La tabla muestra nombre, descripción, categoría por nombre, negocio por nombre, estado, dirección, contacto, horario, especialidades, sitio, tipo de geometría, longitud, latitud, usuario creador por nombre y fechas. Los IDs técnicos no aparecen.
 
 La actualización inmediata cubre los cambios realizados desde la sesión actual. No se implementó sincronización por WebSocket entre varios navegadores; vuelve a entrar al mapa o usa “Reintentar” tras errores para consultar cambios externos.
+
+Si una operación se guarda correctamente pero después falla la recarga de catálogos, se confirma el guardado y se cierra el formulario. El aviso **Reintentar** repite la lectura de datos, sin volver a crear el registro. Los errores de la escritura conservan el formulario abierto para corregirlo. Las respuestas y errores de geolocalización pendientes se ignoran al salir de la vista del mapa.
 
 ## Arquitectura
 
@@ -149,11 +250,23 @@ PF/
       data/         Guía del tablero y fuentes
       api.js        Cliente fetch con cookie y errores
       App.jsx       Sesión, navegación y catálogos
-  e2e/              Pruebas reales de navegador
+    public/         Archivos estáticos
+    dist/           Compilación generada para Netlify; ignorada en Git
+    index.html      Entrada del frontend
+    vite.config.js  React, servidor local y proxy /api
+  e2e/
+    app.spec.mjs          Recorridos principales de la aplicación
+    regressions.spec.mjs  Fallos de recarga y respuestas tardías de ubicación
+    teardown.mjs         Limpieza de la base temporal de navegador
   scripts/          Entorno, arranque y servidor aislado de pruebas
+  package.json      Workspaces Backend/Frontend y comandos generales
+  netlify.toml      Compilación y redirecciones de producción
+  playwright.config.mjs  Configuración de pruebas de navegador
 ```
 
 El router CRUD compartido reduce repetición; cada entidad conserva su servicio y modelo propios. Las rutas solo reciben datos y devuelven HTTP. Los servicios validan relaciones, aplican filtros y consultan MongoDB. `AppError` y el middleware final unifican los errores.
+
+`Backend/src/app.js` configura Express sin abrir un puerto. `Backend/src/index.js` conecta la base de datos, prepara los índices, inicia la escucha y muestra las rutas disponibles. El código editable de la interfaz está en `Frontend/src/`; `npm run build` genera `Frontend/dist/`.
 
 GeoJSON usa siempre **[longitud, latitud]**. Leaflet recibe **[latitud, longitud]**; la conversión ocurre en el componente de mapa. Las zonas admiten un anillo exterior cerrado, entre 3 y 500 vértices, sin repeticiones, cruces ni superficie nula.
 
@@ -163,8 +276,17 @@ Las eliminaciones con referencias activas devuelven 409: primero se reasignan/el
 
 Todas las rutas de entidades requieren la cookie de sesión.
 
+Direcciones base según el entorno:
+
+| Entorno | Base de la API |
+| --- | --- |
+| Local | `http://127.0.0.1:3001/api` |
+| Publicado, a través del frontend | `https://rutamotor.netlify.app/api` |
+| Backend directo | `https://rutamotor.onrender.com/api` |
+
 | Ruta | Métodos |
 | --- | --- |
+| /api/health | GET, público |
 | /api/auth/register | POST |
 | /api/auth/login | POST |
 | /api/auth/me | GET |
@@ -193,6 +315,16 @@ El radio se expresa en kilómetros, mayor que cero y máximo 100. La cercanía u
 
 Seguridad: cookie HttpOnly y SameSite=Strict, token aleatorio de 256 bits cuyo hash se almacena en MongoDB, expiración comprobada en cada petición y TTL de limpieza, logout con revocación, límite de intentos de acceso, CORS/origin en escrituras, Helmet, cuerpos JSON limitados, listas de campos permitidos y contraseñas de 10 caracteres como mínimo y 72 bytes como máximo. No se guardan tokens ni contraseñas en localStorage. `COOKIE_SECURE=false` permite HTTP local; para HTTPS se debe configurar true.
 
+### Probar en Thunder Client o REST Client
+
+1. Envía `GET /api/health` para comprobar la conexión.
+2. Envía `POST /api/auth/login` con un cuerpo JSON que incluya `email` y `password` de una cuenta de RutaMotor.
+3. Conserva la cookie `rutamotor_session` recibida y envía `GET /api/auth/me`.
+4. Consulta `/api/locations`, `/api/categories`, `/api/businesses`, `/api/specialties` y `/api/zones` con la sesión activa.
+5. Para cerrar esa sesión, envía `POST /api/auth/logout` con un cuerpo JSON `{}`.
+
+Mantén el mismo dominio para el login y las demás solicitudes. Si necesitas enviar la cookie manualmente, utiliza el encabezado `Cookie: rutamotor_session=<valor_recibido>`. La API usa autenticación por cookie; no requiere un token Bearer. Hay ejemplos completos de solicitudes en `Backend/request/rutamotor.http`, cuyo `baseUrl` puedes cambiar para probar la versión publicada.
+
 ## Verificación
 
 ```powershell
@@ -206,6 +338,8 @@ npm run test:e2e
 - En Windows se usa Microsoft Edge instalado. En otros sistemas instala Chromium con `npx playwright install chromium`. Puede seleccionarse otro canal con `PW_CHANNEL`.
 - `MONGODB_TEST_URI` selecciona el servidor de pruebas y es independiente de `MONGODB_URI`. Su valor de ejemplo es `mongodb://127.0.0.1:27017`: para ejecutar las pruebas con ese valor, el servicio MongoDB local debe estar activo, aunque la app use Atlas. El usuario del servidor de pruebas necesita permisos para crear y eliminar las bases temporales.
 - Las capturas y trazas de verificación se guardan en carpetas ignoradas; no son el reporte del proyecto.
+- `e2e/app.spec.mjs` cubre acceso, sesión, CRUD, mapa y tabla, polígonos, guía, vista móvil, cercanía y exportación GeoJSON.
+- `e2e/regressions.spec.mjs` comprueba que los fallos de recarga no repitan operaciones guardadas, que los errores de escritura permitan corregir el formulario y que las respuestas tardías de geolocalización se ignoren al cambiar de vista.
 
 ## Fuentes técnicas y guía
 
@@ -213,11 +347,17 @@ npm run test:e2e
 - [GeoJSON en Mongoose](https://mongoosejs.com/docs/geojson.html) y [referencias con populate](https://mongoosejs.com/docs/populate.html).
 - Los textos e ilustraciones de la guía son orientativos, elaborados para esta app. Las referencias del fabricante están accesibles dentro de la vista Guía. No sustituyen el manual del vehículo ni una revisión profesional.
 
-## Pendientes de entrega
+## Estado de entrega
 
-- Publicar el frontend y el backend para la revisión del proyecto. La base de datos de la configuración actual ya está en Atlas.
-- Preparar el repositorio público con frontend, backend, este README y los archivos `.env.example`, y entregar su enlace. Los `.env` reales y sus credenciales deben quedar excluidos; `.gitignore` ya los contempla.
-- Entregar las credenciales de una cuenta de demostración existente con datos cargados. Si se usan los valores públicos de ejemplo, comprueba que coincidan con la cuenta creada en la base de revisión.
-- Elaborar el reporte de desarrollo en PDF con portada institucional, problemática y solución, desarrollo paso a paso, estructura del backend, modelos y relaciones, capturas de cada requisito funcionando y una conclusión por integrante. Este reporte permanece pospuesto por indicación del usuario.
+| Elemento | Estado |
+| --- | --- |
+| Frontend | Publicado en Netlify; enlace al inicio del documento |
+| Backend | Publicado en Render, con `/api/health` disponible |
+| Base de datos | MongoDB Atlas configurado para la aplicación |
+| Repositorio | Creado y publicado en GitHub, con frontend, backend, README y `.env.example` |
+| Cuenta de demostración | Se carga mediante el seed y sus valores de ejemplo están documentados; entrega las credenciales que correspondan a la cuenta existente en la base de revisión |
+| Reporte PDF | Pendiente; pospuesto por indicación del usuario |
+
+El reporte de desarrollo debe incluir portada institucional, problemática y solución, desarrollo paso a paso, estructura del backend, modelos y relaciones, capturas de cada requisito funcionando y una conclusión por integrante. Los `.env` reales y sus credenciales quedan excluidos mediante `.gitignore`.
 
 Las capturas generadas durante las pruebas son material de verificación y no sustituyen el reporte de desarrollo. Para la revisión, los integrantes deben conocer y poder explicar el código y los complementos utilizados.
